@@ -8,16 +8,17 @@ import pystray
 from pystray import MenuItem as item
 from PIL import ImageDraw
 import win32com.client
+import requests
 
-# === CONFIG ===
 APP_NAME = "Frame"
-SCREENSHOT_INTERVAL = 30  # seconds
+SCREENSHOT_INTERVAL = 30
+ASSETS_DIR = os.path.join(os.getcwd(), "assets")
 SCREENSHOT_DIR = os.path.join(os.getcwd(), "screenshots")
-ICON_PATH = os.path.join(os.getcwd(), "assets", "icon.ico")
+ICON_PATH = os.path.join(ASSETS_DIR, "icon.ico")
+ICON_URL = "https://raw.githubusercontent.com/carsonOK/Frame/refs/heads/main/icon.ico"
 STARTUP_NAME = f"{APP_NAME}.lnk"
 LOG_FILE = os.path.join(os.getcwd(), f"{APP_NAME}.log")
 
-# === SETUP LOGGING ===
 logging.basicConfig(
     filename=LOG_FILE,
     level=logging.INFO,
@@ -33,11 +34,21 @@ def log_error(msg):
     print("ERROR:", msg)
     logging.error(msg)
 
-# === INITIAL SETUP ===
 os.makedirs(SCREENSHOT_DIR, exist_ok=True)
-os.makedirs(os.path.join(os.getcwd(), "assets"), exist_ok=True)
+os.makedirs(ASSETS_DIR, exist_ok=True)
 
-# === AUTO-START SETUP ===
+def download_icon():
+    if not os.path.exists(ICON_PATH):
+        try:
+            log_info(f"Downloading icon from {ICON_URL} ...")
+            r = requests.get(ICON_URL, timeout=10)
+            r.raise_for_status()
+            with open(ICON_PATH, "wb") as f:
+                f.write(r.content)
+            log_info("Icon downloaded successfully.")
+        except Exception as e:
+            log_error(f"Failed to download icon: {e}")
+
 def enable_autostart():
     try:
         startup_path = os.path.join(
@@ -55,7 +66,6 @@ def enable_autostart():
     except Exception as e:
         log_error(f"Failed to create auto-start shortcut: {e}")
 
-# === SCREENSHOT FUNCTION ===
 def take_screenshot():
     log_info("Screenshot thread started.")
     while True:
@@ -69,15 +79,12 @@ def take_screenshot():
             log_error(f"Failed to take screenshot: {e}")
         time.sleep(SCREENSHOT_INTERVAL)
 
-# === CREATE DEFAULT ICON IF NONE EXISTS ===
 def create_default_icon():
-    # Create a simple black square icon if no icon file is found
     image = Image.new('RGB', (64, 64), color='black')
     draw = ImageDraw.Draw(image)
     draw.rectangle((10, 10, 54, 54), outline="white", width=4)
     return image
 
-# === TRAY ICON ===
 def create_tray():
     try:
         def on_quit():
@@ -98,10 +105,10 @@ def create_tray():
     except Exception as e:
         log_error(f"Tray icon error: {e}")
 
-# === MAIN ===
 if __name__ == "__main__":
     log_info("App started.")
+    download_icon()
     enable_autostart()
     threading.Thread(target=take_screenshot, daemon=True).start()
-    create_tray()  # this call blocks and keeps the program running
+    create_tray()
     log_info("App exited.")
