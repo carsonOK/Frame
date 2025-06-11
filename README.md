@@ -24,7 +24,7 @@ Frame is a lightweight Windows app that automatically takes a screenshot every 3
 
 ### 3. Install dependencies
 
-- Open **Command Prompt** and navigate to the unzipped Frame folder, e.g.:  `cd C:\Users\admin\downloads\Frame`, and run the following command: `pip install Pillow pystray pywin32`.
+- Open **Command Prompt** and navigate to the unzipped Frame folder, e.g.:  `cd C:\Users\admin\downloads\Frame`, and run the following command: `pip install Pillow pystray pywin32 requests`.
 
 ### 4. Run frame!
 - Open another **Command Prompt** window in the directory you downloaded Frame and run `python.exe Frame.py`! Frame should start taking screenshots every 30 seconds and saving them to the /screenshots folder.
